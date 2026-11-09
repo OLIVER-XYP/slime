@@ -68,5 +68,6 @@ source scripts/models/qwen3-8B.sh
   --max-tokens-per-gpu 4096 \
   --rollout-num-gpus-per-engine 1 \
   --sglang-mem-fraction-static 0.35 \
+  --sglang-disable-cuda-graph \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0
