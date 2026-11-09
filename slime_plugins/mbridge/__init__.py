@@ -7,6 +7,7 @@ from .mimo import MimoBridge
 from .minimax_m2 import MiniMaxM2Bridge
 from .qwen3_5 import Qwen3_5Bridge
 from .qwen3_next import Qwen3NextBridge
+from .qwen3 import Qwen3LocalBridge
 
 __all__ = [
     "GLM4Bridge",
@@ -16,6 +17,7 @@ __all__ = [
     "MiniMaxM2Bridge",
     "Qwen3NextBridge",
     "Qwen3_5Bridge",
+    "Qwen3LocalBridge",
     "MimoBridge",
     "DeepseekV32Bridge",
 ]
