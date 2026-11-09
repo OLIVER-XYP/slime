@@ -66,6 +66,8 @@ source scripts/models/qwen3-8B.sh
   --no-rope-fusion \
   --no-persist-layer-norm \
   --no-gradient-accumulation-fusion \
+  --grad-reduce-in-bf16 \
+  --main-grads-dtype bf16 \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
   --use-dynamic-batch-size \
