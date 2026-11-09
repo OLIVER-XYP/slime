@@ -9,6 +9,7 @@ cd /home/slai/work/slime
 source scripts/models/qwen3-8B.sh
 PYTHONPATH=/home/slai/src/Megatron-LM python tools/convert_hf_to_torch_dist.py \
   "${MODEL_ARGS[@]}" \
+  --no-rope-fusion \
   --hf-checkpoint /home/slai/models/Qwen3-8B \
   --save /home/slai/models/Qwen3-8B_torch_dist
 ```
