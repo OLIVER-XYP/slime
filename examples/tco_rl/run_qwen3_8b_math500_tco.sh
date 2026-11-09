@@ -8,7 +8,7 @@ set -euo pipefail
 : "${TRACE_PATH:=/home/slai/work/TCO-TSR/outputs/rl/qwen3_math500_slime.{role}.jsonl}"
 : "${TCO_RL_FAULT:=none}"
 : "${PYTHON_BIN:=python3}"
-: "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
+: "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
 # Keep runtime JIT tools (for example ninja) visible to Ray/SGLang workers
 # when PYTHON_BIN points into a virtual environment.
