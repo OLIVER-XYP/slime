@@ -72,8 +72,9 @@ source scripts/models/qwen3-8B.sh
   --expert-tensor-parallel-size 1 \
   --use-dynamic-batch-size \
   --max-tokens-per-gpu 4096 \
+  --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
-  --sglang-mem-fraction-static 0.18 \
+  --sglang-mem-fraction-static 0.16 \
   --sglang-disable-cuda-graph \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0
