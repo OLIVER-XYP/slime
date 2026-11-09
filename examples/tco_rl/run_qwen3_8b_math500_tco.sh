@@ -54,6 +54,7 @@ python train.py \
   --transformer-impl local \
   --no-rope-fusion \
   --no-persist-layer-norm \
+  --no-gradient-accumulation-fusion \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
   --use-dynamic-batch-size \

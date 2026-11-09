@@ -12,6 +12,7 @@ PYTHONPATH=/home/slai/src/Megatron-LM python tools/convert_hf_to_torch_dist.py \
   --transformer-impl local \
   --no-rope-fusion \
   --no-persist-layer-norm \
+  --no-gradient-accumulation-fusion \
   --hf-checkpoint /home/slai/models/Qwen3-8B \
   --save /home/slai/models/Qwen3-8B_torch_dist
 ```
