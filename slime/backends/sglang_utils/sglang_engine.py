@@ -609,15 +609,18 @@ def _compute_server_args(
         kwargs["dtype"] = "float16"
     external_engine_need_check_fields = [k for k in kwargs.keys() if k not in _EXTERNAL_ENGINE_SKIP_CHECK_FIELDS]
 
-    server_arg_fields = dataclasses.fields(ServerArgs)
-    server_arg_field_names = {attr.name for attr in server_arg_fields}
+    try:
+        server_arg_field_names = {attr.name for attr in dataclasses.fields(ServerArgs)}
+    except TypeError:
+        # SGLang 0.5.23+ uses msgspec.Struct instead of a dataclass.
+        server_arg_field_names = set(getattr(ServerArgs, "__struct_fields__", ()))
     unused_keys = set(kwargs.keys())
-    for attr in server_arg_fields:
-        if worker_type == "decode" and attr.name == "enable_hierarchical_cache":
+    for attr_name in server_arg_field_names:
+        if worker_type == "decode" and attr_name == "enable_hierarchical_cache":
             continue
-        if hasattr(args, f"sglang_{attr.name}") and attr.name not in kwargs:
-            kwargs[attr.name] = getattr(args, f"sglang_{attr.name}")
-        unused_keys.discard(attr.name)
+        if hasattr(args, f"sglang_{attr_name}") and attr_name not in kwargs:
+            kwargs[attr_name] = getattr(args, f"sglang_{attr_name}")
+        unused_keys.discard(attr_name)
 
     # Per-server-group overrides from --sglang-config YAML.
     # Applied after base args so they take highest priority.
