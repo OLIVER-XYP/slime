@@ -714,10 +714,28 @@ class RolloutManager:
         """
         Convert inference generated samples to training data.
         """
+        try:
+            from slime_plugins.tco_rl import get_global_observer
+        except ImportError:
+            get_global_observer = None
+
+        if os.environ.get("TCO_RL_TRACE_PATH"):
+            os.environ.setdefault("TCO_RL_ROLE", "rollout")
+        observer = get_global_observer() if get_global_observer is not None else None
+        if observer is not None:
+            observer.record_rollout(self.rollout_id, samples)
+
         if self.custom_convert_samples_to_train_data_func is not None:
-            return self.custom_convert_samples_to_train_data_func(self.args, samples)
+            converted = self.custom_convert_samples_to_train_data_func(self.args, samples)
+            if observer is not None:
+                observer.flush()
+            return converted
 
         raw_rewards, rewards = self._post_process_rewards(samples)
+
+        if observer is not None:
+            observer.record_rewards(self.rollout_id, rewards, raw_rewards=raw_rewards)
+            observer.flush()
 
         assert len(raw_rewards) == len(samples)
         assert len(rewards) == len(samples)

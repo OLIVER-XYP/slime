@@ -41,6 +41,17 @@ from .stateless_adam import StatelessAdam
 logger = logging.getLogger(__name__)
 
 
+def _get_tco_observer():
+    """Load the optional TCO observer without changing normal Slime imports."""
+    try:
+        from slime_plugins.tco_rl import get_global_observer
+    except ImportError:
+        return None
+    if os.environ.get("TCO_RL_TRACE_PATH"):
+        os.environ.setdefault("TCO_RL_ROLE", "train")
+    return get_global_observer()
+
+
 def _disable_tqdm_for_non_main_rank() -> bool:
     return not (
         mpu.get_data_parallel_rank(with_context_parallel=True) == 0
@@ -593,6 +604,7 @@ def train_one_step(
                     "rollout_log_probs",
                     "teacher_log_probs",
                     "rollout_mask_sums",
+                    "rollout_ids",
                 ],
             ),
             args.data_pad_size_multiplier,
@@ -663,6 +675,10 @@ def train_one_step(
             else:
                 valid_step = not (math.isnan(grad_norm) or math.isinf(grad_norm))
 
+    observer = _get_tco_observer()
+    if observer is not None:
+        observer.record_backward(rollout_id, grad_norm=grad_norm)
+
     # CI check: verify only MTP parameters have non-zero gradients when truncation happens
     # This check must happen before optimizer.step() as gradients may be modified during step
     if args.ci_test and args.enable_mtp_training:
@@ -673,6 +689,13 @@ def train_one_step(
     if valid_step:
         # Update parameters.
         update_successful, grad_norm, num_zeros_in_grad = optimizer.step()
+
+        if observer is not None and update_successful:
+            observer.record_optimizer(
+                rollout_id,
+                step=step_id,
+                parameter_version=f"{rollout_id}:{step_id}",
+            )
 
         # Update learning rate. Use the per-step global_batch_size when dynamic
         # batching is on so the scheduler's samples-seen counter tracks reality.
@@ -929,6 +952,9 @@ def train(
                     abs_tol=0.01,
                 ), f"grad norm mismatch: {grad_norm} != {expected_grad_norm}"
     microbatch_pbar.close()
+    observer = _get_tco_observer()
+    if observer is not None:
+        observer.flush()
     # Close out pre-hooks if using distributed optimizer and overlapped param gather.
     if pre_hook_enabled:
         disable_forward_pre_hook(model)

@@ -37,6 +37,19 @@ ROLLOUT_TOP_P_TOKEN_KEYS = (
 )
 
 
+def _get_tco_observer():
+    """Load the optional TCO observer without changing normal Slime imports."""
+    try:
+        from slime_plugins.tco_rl import get_global_observer
+    except ImportError:
+        return None
+    import os
+
+    if os.environ.get("TCO_RL_TRACE_PATH"):
+        os.environ.setdefault("TCO_RL_ROLE", "train")
+    return get_global_observer()
+
+
 def get_rollout_top_p_logprob_kwargs(args: Namespace, batch: dict[str, Any]) -> dict[str, Any]:
     if args.rollout_top_p == 1.0:
         return {}
@@ -823,6 +836,10 @@ def compute_advantages_and_returns(args: Namespace, rollout_data: RolloutBatch) 
     rollout_data["advantages"] = advantages
     rollout_data["returns"] = returns
 
+    observer = _get_tco_observer()
+    if observer is not None:
+        observer.record_advantages(rollout_data.get("rollout_ids", "unknown"), torch.cat(advantages))
+
 
 def vanilla_tis_function(
     args,
@@ -1101,6 +1118,13 @@ def policy_loss_function(
     if "opd_reverse_kl" in batch:
         opd_reverse_kl = torch.cat(batch["opd_reverse_kl"], dim=0)
         reported_loss["opd_reverse_kl"] = sum_of_sample_mean(opd_reverse_kl).clone().detach()
+
+    observer = _get_tco_observer()
+    if observer is not None:
+        rollout_id = batch.get("rollout_ids", "unknown")
+        mask_sum = sum(mask.sum() for mask in batch.get("loss_masks", []))
+        observer.record_policy(rollout_id, old_log_probs=old_log_probs, current_log_probs=log_probs)
+        observer.record_loss(rollout_id, loss=loss, mask_sum=mask_sum)
 
     return loss, reported_loss
 
