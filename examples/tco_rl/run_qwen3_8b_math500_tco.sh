@@ -30,6 +30,11 @@ export LD_LIBRARY_PATH="${CUDA_LIB_DIRS}:${LD_LIBRARY_PATH:-}"
 # FSDP2 keeps a CPU backup of the model; allow the one-step smoke run to use
 # the remaining host memory while Ray transitions between rollout and train.
 export RAY_memory_usage_threshold="${RAY_memory_usage_threshold:-0.99}"
+# The 8B colocated rollout/train smoke run intentionally reuses nearly all host
+# memory.  Ray's monitor can kill the training actor after a successful backward
+# pass even when no object-store pressure exists, so leave killing disabled for
+# this bounded experiment and rely on the process exit/OOM status for failures.
+export RAY_memory_monitor_refresh_ms="${RAY_memory_monitor_refresh_ms:-0}"
 export TCO_RL_TRACE_PATH="${TRACE_PATH}"
 export TCO_RL_FAULT
 export TCO_RL_FAULT_SAMPLE_INDEX="${TCO_RL_FAULT_SAMPLE_INDEX:-0}"
