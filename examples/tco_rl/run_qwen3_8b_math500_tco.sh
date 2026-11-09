@@ -27,6 +27,9 @@ fi
 export PYTHONUNBUFFERED=1
 export PYTHONPATH="${HOME}/src/Megatron-LM:${PWD}:${PYTHONPATH:-}"
 export LD_LIBRARY_PATH="${CUDA_LIB_DIRS}:${LD_LIBRARY_PATH:-}"
+# FSDP2 keeps a CPU backup of the model; allow the one-step smoke run to use
+# the remaining host memory while Ray transitions between rollout and train.
+export RAY_memory_usage_threshold="${RAY_memory_usage_threshold:-0.99}"
 export TCO_RL_TRACE_PATH="${TRACE_PATH}"
 export TCO_RL_FAULT
 export TCO_RL_FAULT_SAMPLE_INDEX="${TCO_RL_FAULT_SAMPLE_INDEX:-0}"
@@ -58,6 +61,8 @@ source scripts/models/qwen3-8B.sh
   --eps-clip 0.2 \
   --kl-loss-coef 0.0 \
   --optimizer adam \
+  --use-stateless-adam \
+  --no-save-optim \
   --lr 1e-6 \
   --tensor-model-parallel-size 1 \
   --pipeline-model-parallel-size 1 \
