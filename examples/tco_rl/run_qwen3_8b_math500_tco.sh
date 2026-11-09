@@ -7,6 +7,7 @@ set -euo pipefail
 : "${DATA_DIR:=/home/slai/data/dapo-math-17k/dapo-math-17k.jsonl}"
 : "${TRACE_PATH:=/home/slai/work/TCO-TSR/outputs/rl/qwen3_math500_slime.{role}.jsonl}"
 : "${TCO_RL_FAULT:=none}"
+: "${PYTHON_BIN:=python3}"
 
 if [[ ! -f "${MODEL_DIR}/config.json" ]]; then
   echo "missing Qwen3-8B checkpoint: ${MODEL_DIR}" >&2
@@ -24,7 +25,7 @@ export TCO_RL_TRACE_PATH="${TRACE_PATH}"
 export TCO_RL_FAULT
 export TCO_RL_FAULT_SAMPLE_INDEX="${TCO_RL_FAULT_SAMPLE_INDEX:-0}"
 
-python train.py \
+"${PYTHON_BIN}" train.py \
   --actor-num-nodes 1 \
   --actor-num-gpus-per-node 1 \
   --colocate \
