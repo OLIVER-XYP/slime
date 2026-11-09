@@ -8,6 +8,7 @@ set -euo pipefail
 : "${TRACE_PATH:=/home/slai/work/TCO-TSR/outputs/rl/qwen3_math500_slime.{role}.jsonl}"
 : "${TCO_RL_FAULT:=none}"
 : "${PYTHON_BIN:=python3}"
+: "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
 if [[ ! -f "${MODEL_DIR}/config.json" ]]; then
   echo "missing Qwen3-8B checkpoint: ${MODEL_DIR}" >&2
@@ -21,6 +22,7 @@ fi
 
 export PYTHONUNBUFFERED=1
 export PYTHONPATH="${HOME}/src/Megatron-LM:${PWD}:${PYTHONPATH:-}"
+export LD_LIBRARY_PATH="${CUDA_LIB_DIRS}:${LD_LIBRARY_PATH:-}"
 export TCO_RL_TRACE_PATH="${TRACE_PATH}"
 export TCO_RL_FAULT
 export TCO_RL_FAULT_SAMPLE_INDEX="${TCO_RL_FAULT_SAMPLE_INDEX:-0}"
