@@ -35,6 +35,7 @@ source scripts/models/qwen3-8B.sh
   --hf-checkpoint "${MODEL_DIR}" \
   --ref-load "${TORCH_DIST_DIR}" \
   --save /tmp/qwen3-8b-tco-rl \
+  --save-interval 1 \
   --prompt-data "${DATA_DIR}" \
   --input-key prompt \
   --label-key label \
