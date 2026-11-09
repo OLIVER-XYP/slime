@@ -6,18 +6,23 @@ try:
     import deep_ep
     from torch_memory_saver import torch_memory_saver
 
-    old_init = deep_ep.Buffer.__init__
+    # DeepEP renamed ``Buffer`` to several concrete buffer classes in newer
+    # releases.  The memory-saver hook is only needed when the legacy class is
+    # present; dense Qwen3 runs do not use this hook.
+    deep_ep_buffer = getattr(deep_ep, "Buffer", None)
+    if deep_ep_buffer is not None:
+        old_init = deep_ep_buffer.__init__
 
-    def new_init(self, *args, **kwargs):
-        if torch_memory_saver._impl is not None:
-            torch_memory_saver._impl._binary_wrapper.cdll.tms_set_interesting_region(False)
-        old_init(self, *args, **kwargs)
-        torch.cuda.synchronize()
-        if torch_memory_saver._impl is not None:
-            torch_memory_saver._impl._binary_wrapper.cdll.tms_set_interesting_region(True)
+        def new_init(self, *args, **kwargs):
+            if torch_memory_saver._impl is not None:
+                torch_memory_saver._impl._binary_wrapper.cdll.tms_set_interesting_region(False)
+            old_init(self, *args, **kwargs)
+            torch.cuda.synchronize()
+            if torch_memory_saver._impl is not None:
+                torch_memory_saver._impl._binary_wrapper.cdll.tms_set_interesting_region(True)
 
-    deep_ep.Buffer.__init__ = new_init
-except ImportError:
+        deep_ep_buffer.__init__ = new_init
+except (ImportError, AttributeError):
     logging.warning("deep_ep is not installed, some functionalities may be limited.")
 
 try:
