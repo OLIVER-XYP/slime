@@ -35,6 +35,17 @@ async def reward(args: Any, sample: Any, **_: Any) -> float:
         response = response.split("</think>")[-1]
     reward_value = get_deepscaler_rule_based_reward(response, label)
 
+    # The first GRPO smoke run is intentionally deterministic.  Qwen3's
+    # colocated rollout can be truncated before it emits a parseable answer,
+    # which would collapse every group to zero reward and hide the downstream
+    # advantage/loss contracts.  Use alternating within-group rewards only when
+    # explicitly enabled by the campaign script; normal Slime reward behavior
+    # remains unchanged when the variable is unset or false.
+    if os.environ.get("TCO_RL_DETERMINISTIC_REWARD", "0").lower() in {"1", "true", "yes"}:
+        sample_index = getattr(sample, "index", None)
+        if sample_index is not None:
+            reward_value = 1.0 if int(sample_index) % 2 == 0 else 0.0
+
     metadata = sample.metadata if isinstance(sample.metadata, dict) else {}
     target_index = int(os.environ.get("TCO_RL_FAULT_SAMPLE_INDEX", "0"))
     fault = os.environ.get("TCO_RL_FAULT", "none")

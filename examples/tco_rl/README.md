@@ -35,5 +35,7 @@ bash examples/tco_rl/run_qwen3_8b_math500_tco.sh
 ```
 
 The observer records rollout, reward, advantage, policy logprob, loss, backward,
-and optimizer boundaries. The deterministic TCO harness remains the reference
-for checking the expected earliest boundary: `reward.verify` for this fault.
+and optimizer boundaries. The smoke script enables a deterministic alternating
+reward fixture so truncated generations still produce non-zero group-relative
+advantages. The deterministic TCO harness remains the reference for checking
+the expected earliest boundary: `reward.verify` for this fault.
