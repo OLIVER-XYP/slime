@@ -73,7 +73,6 @@ source scripts/models/qwen3-8B.sh
   --megatron-fsdp-main-grads-dtype bf16 \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
-  --use-dynamic-batch-size \
   --max-tokens-per-gpu 4096 \
   --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
