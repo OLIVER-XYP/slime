@@ -145,8 +145,9 @@ def _hf_validate_args(args, hf_config):
 
 
 def _set_default_megatron_args(args):
-    # always use zero optimizer
-    args.use_distributed_optimizer = True
+    # Slime's normal actor path uses the distributed optimizer, while Torch
+    # FSDP2 manages sharding and explicitly forbids MCore's optimizer.
+    args.use_distributed_optimizer = not getattr(args, "use_torch_fsdp2", False)
     # TODO: maybe change this after megatron has good fp8 support
     args.bf16 = not args.fp16
     # Checkpoint I/O defaults: these keep checkpoint contents unchanged while
