@@ -139,9 +139,17 @@ def add_sglang_arguments(parser):
 
 
 def validate_args(args):
-    args.sglang_dp_size = args.sglang_data_parallel_size
-    args.sglang_pp_size = args.sglang_pipeline_parallel_size
-    args.sglang_ep_size = args.sglang_expert_parallel_size
+    # SGLang renamed these fields from ``*_parallel_size`` to ``*_size``.
+    # Keep both spellings working so Slime can run across SGLang releases.
+    args.sglang_dp_size = getattr(
+        args, "sglang_data_parallel_size", getattr(args, "sglang_dp_size", 1)
+    )
+    args.sglang_pp_size = getattr(
+        args, "sglang_pipeline_parallel_size", getattr(args, "sglang_pp_size", 1)
+    )
+    args.sglang_ep_size = getattr(
+        args, "sglang_expert_parallel_size", getattr(args, "sglang_ep_size", 1)
+    )
 
     # Compute effective TP size considering PP size
     if args.sglang_pp_size > 1:
