@@ -67,6 +67,7 @@ source scripts/models/qwen3-8B.sh
   --no-persist-layer-norm \
   --no-gradient-accumulation-fusion \
   --grad-reduce-in-bf16 \
+  --no-use-distributed-optimizer \
   --use-torch-fsdp2 \
   --megatron-fsdp-main-params-dtype bf16 \
   --megatron-fsdp-main-grads-dtype bf16 \
