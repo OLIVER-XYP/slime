@@ -53,6 +53,7 @@ python train.py \
   --context-parallel-size 1 \
   --transformer-impl local \
   --no-rope-fusion \
+  --no-persist-layer-norm \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
   --use-dynamic-batch-size \
