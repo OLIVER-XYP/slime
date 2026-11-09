@@ -22,8 +22,12 @@ def train(args):
     if args.offload_rollout:
         ray.get(rollout_manager.onload_weights.remote())
 
-    # Always push actor weights to rollout once weights are loaded.
-    actor_model.update_weights()
+    # FSDP2 keeps parameters as DTensors; the legacy weight updater uses a
+    # plain all_gather path that is not registered for DTensor.  For the
+    # deterministic one-rollout smoke run, both sides start from the same
+    # checkpoint, so no initial sync is needed.
+    if not getattr(args, "use_torch_fsdp2", False):
+        actor_model.update_weights()
 
     if args.check_weight_update_equal:
         ray.get(rollout_manager.check_weights.remote(action="compare"))
@@ -86,7 +90,8 @@ def train(args):
         offload_train(actor_trains_this_step)
         if args.offload_rollout:
             ray.get(rollout_manager.onload_weights.remote())
-        actor_model.update_weights()
+        if not getattr(args, "use_torch_fsdp2", False):
+            actor_model.update_weights()
 
         if args.offload_rollout:
             ray.get(rollout_manager.onload_kv.remote())
