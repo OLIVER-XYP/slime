@@ -39,6 +39,22 @@ def test_observer_records_policy_and_backward_evidence(tmp_path):
     assert records[1]["contract_id"] == "rl.backward.gradient_finite"
 
 
+def test_observer_flattens_batched_policy_values_and_lineage(tmp_path):
+    path = tmp_path / "trace.jsonl"
+    observer = SlimeTCOObserver(path=path, experiment_id="fixture")
+
+    observer.record_policy(
+        ["r0", "r0"],
+        old_log_probs=[[-1.0, -2.0], [-3.0]],
+        current_log_probs=[[-1.1, -1.8], [-2.5]],
+    )
+    observer.flush()
+
+    record = json.loads(path.read_text().splitlines()[0])
+    assert record["lineage"]["rollout_id"] == "r0"
+    assert record["writes"]["token_count"] == 3
+
+
 def test_global_observer_is_disabled_without_trace_path(monkeypatch, tmp_path):
     monkeypatch.delenv("TCO_RL_TRACE_PATH", raising=False)
     assert get_global_observer() is None

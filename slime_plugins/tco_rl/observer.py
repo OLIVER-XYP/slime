@@ -59,6 +59,28 @@ def _summarize_values(values: Any) -> dict[str, Any]:
         return {"count": None}
 
 
+def _flatten_numbers(values: Any) -> list[float]:
+    """Flatten tensor-like or nested Python values into scalar floats."""
+    if hasattr(values, "detach"):
+        try:
+            return [float(value) for value in values.detach().float().reshape(-1).tolist()]
+        except (AttributeError, TypeError, ValueError, RuntimeError):
+            return []
+    if isinstance(values, (str, bytes)):
+        return []
+    try:
+        iterator = iter(values)
+    except TypeError:
+        try:
+            return [float(values)]
+        except (TypeError, ValueError):
+            return []
+    flattened: list[float] = []
+    for value in iterator:
+        flattened.extend(_flatten_numbers(value))
+    return flattened
+
+
 @dataclass
 class SlimeTCOObserver:
     """Collect stage events and write a JSONL trace at the end of a run."""
@@ -111,6 +133,13 @@ class SlimeTCOObserver:
 
     @staticmethod
     def _rollout_lineage(rollout_id: Any) -> dict[str, str]:
+        if isinstance(rollout_id, (list, tuple, set)):
+            values = [str(value) for value in rollout_id]
+            unique = list(dict.fromkeys(values))
+            return {
+                "rollout_id": unique[0] if len(unique) == 1 else "batch",
+                "rollout_ids": ",".join(unique),
+            }
         return {"rollout_id": str(rollout_id)}
 
     def record_rollout(self, rollout_id: int | str, samples: list[Any]) -> None:
@@ -165,15 +194,14 @@ class SlimeTCOObserver:
                 "mean_abs_logprob_delta": float(delta.abs().mean().item()) if delta.numel() else 0.0,
             }
         except (AttributeError, TypeError, RuntimeError):
-            try:
-                deltas = [abs(float(current) - float(old)) for old, current in zip(old_log_probs, current_log_probs)]
-                summary = {
-                    "token_count": len(deltas),
-                    "max_abs_logprob_delta": max(deltas, default=0.0),
-                    "mean_abs_logprob_delta": sum(deltas) / len(deltas) if deltas else 0.0,
-                }
-            except (TypeError, ValueError):
-                summary = {"token_count": None}
+            old_values = _flatten_numbers(old_log_probs)
+            current_values = _flatten_numbers(current_log_probs)
+            deltas = [abs(current - old) for old, current in zip(old_values, current_values)]
+            summary = {
+                "token_count": len(deltas),
+                "max_abs_logprob_delta": max(deltas, default=0.0),
+                "mean_abs_logprob_delta": sum(deltas) / len(deltas) if deltas else 0.0,
+            }
         self.emit(
             stage="policy.logprob",
             operator="slime.policy_loss_function",
