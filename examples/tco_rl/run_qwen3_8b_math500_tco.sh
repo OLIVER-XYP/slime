@@ -25,7 +25,10 @@ export TCO_RL_TRACE_PATH="${TRACE_PATH}"
 export TCO_RL_FAULT
 export TCO_RL_FAULT_SAMPLE_INDEX="${TCO_RL_FAULT_SAMPLE_INDEX:-0}"
 
+source scripts/models/qwen3-8B.sh
+
 "${PYTHON_BIN}" train.py \
+  "${MODEL_ARGS[@]}" \
   --actor-num-nodes 1 \
   --actor-num-gpus-per-node 1 \
   --colocate \
