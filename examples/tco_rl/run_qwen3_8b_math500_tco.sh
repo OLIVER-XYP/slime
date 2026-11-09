@@ -10,6 +10,10 @@ set -euo pipefail
 : "${PYTHON_BIN:=python3}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
+# Keep runtime JIT tools (for example ninja) visible to Ray/SGLang workers
+# when PYTHON_BIN points into a virtual environment.
+export PATH="$(dirname "${PYTHON_BIN}"):${PATH}"
+
 if [[ ! -f "${MODEL_DIR}/config.json" ]]; then
   echo "missing Qwen3-8B checkpoint: ${MODEL_DIR}" >&2
   exit 2
