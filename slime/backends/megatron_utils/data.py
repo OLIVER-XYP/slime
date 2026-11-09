@@ -30,6 +30,7 @@ def get_batch(
     keys: Sequence[str],
     pad_multiplier: int = 128,
     allgather_cp: bool = False,
+    use_packed_seq_params: bool = True,
 ) -> dict[str, torch.Tensor | PackedSeqParams | list[torch.Tensor] | None]:
     """
     Generate a CP-ready micro-batch with packed sequence parameters.
@@ -104,13 +105,15 @@ def get_batch(
         cu_seqlens = torch.tensor(cu_seqlens, dtype=torch.int).cuda() * cp_size
 
     max_seqlen = (cu_seqlens[1:] - cu_seqlens[:-1]).max().item()
-    packed_seq_params = PackedSeqParams(
-        cu_seqlens_q=cu_seqlens,
-        cu_seqlens_kv=cu_seqlens,
-        max_seqlen_q=max_seqlen,
-        max_seqlen_kv=max_seqlen,
-        qkv_format="thd",
-    )
+    packed_seq_params = None
+    if use_packed_seq_params:
+        packed_seq_params = PackedSeqParams(
+            cu_seqlens_q=cu_seqlens,
+            cu_seqlens_kv=cu_seqlens,
+            max_seqlen_q=max_seqlen,
+            max_seqlen_kv=max_seqlen,
+            qkv_format="thd",
+        )
 
     tokens = tokens.unsqueeze(0)
 

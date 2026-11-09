@@ -425,6 +425,7 @@ def forward_only(
             batch_keys,
             args.data_pad_size_multiplier,
             args.allgather_cp,
+            use_packed_seq_params=args.transformer_impl != "local",
         )
         unconcat_tokens = batch["unconcat_tokens"]
         tokens = batch["tokens"]
@@ -609,6 +610,7 @@ def train_one_step(
             ),
             args.data_pad_size_multiplier,
             args.allgather_cp,
+            use_packed_seq_params=args.transformer_impl != "local",
         )
 
         if os.environ.get("ENABLE_ROUTING_REPLAY", "0") == "1":
