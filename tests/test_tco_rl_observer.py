@@ -36,7 +36,7 @@ def test_observer_records_policy_and_backward_evidence(tmp_path):
     records = [json.loads(line) for line in path.read_text().splitlines()]
     assert [record["stage"] for record in records] == ["policy.logprob", "backward.compute"]
     assert records[0]["writes"]["token_count"] == 2
-    assert records[1]["contract_id"] == "rl.backward.gradient_finite"
+    assert records[1]["contract_id"] == "rl.backward.gradient_consistency"
 
 
 def test_observer_flattens_batched_policy_values_and_lineage(tmp_path):

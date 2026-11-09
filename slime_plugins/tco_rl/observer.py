@@ -235,7 +235,7 @@ class SlimeTCOObserver:
             reads={"rollout_id": str(rollout_id)},
             writes={"grad_norm": _as_float(grad_norm)},
             lineage=self._rollout_lineage(rollout_id),
-            contract_id="rl.backward.gradient_finite",
+            contract_id="rl.backward.gradient_consistency",
         )
 
     def record_optimizer(self, rollout_id: Any, *, step: int, parameter_version: str | None = None) -> None:
