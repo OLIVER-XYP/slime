@@ -39,3 +39,7 @@ and optimizer boundaries. The smoke script enables a deterministic alternating
 reward fixture so truncated generations still produce non-zero group-relative
 advantages. The deterministic TCO harness remains the reference for checking
 the expected earliest boundary: `reward.verify` for this fault.
+
+If the colocated 8B actor needs a lower memory envelope, override
+`TCO_RL_MAX_RESPONSE_LEN` and `TCO_RL_MAX_TOKENS_PER_GPU` for the same command;
+the defaults are 128 and 2048.

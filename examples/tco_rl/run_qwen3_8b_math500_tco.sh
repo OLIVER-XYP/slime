@@ -8,6 +8,8 @@ set -euo pipefail
 : "${TRACE_PATH:=/home/slai/work/TCO-TSR/outputs/rl/qwen3_math500_slime.{role}.jsonl}"
 : "${TCO_RL_FAULT:=none}"
 : "${TCO_RL_DETERMINISTIC_REWARD:=1}"
+: "${TCO_RL_MAX_RESPONSE_LEN:=128}"
+: "${TCO_RL_MAX_TOKENS_PER_GPU:=2048}"
 : "${PYTHON_BIN:=python3}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
@@ -60,7 +62,7 @@ source scripts/models/qwen3-8B.sh
   --n-samples-per-prompt 4 \
   --num-steps-per-rollout 1 \
   --global-batch-size 4 \
-  --rollout-max-response-len 128 \
+  --rollout-max-response-len "${TCO_RL_MAX_RESPONSE_LEN}" \
   --rollout-temperature 1.0 \
   --advantage-estimator grpo \
   --eps-clip 0.2 \
@@ -84,7 +86,7 @@ source scripts/models/qwen3-8B.sh
   --megatron-fsdp-main-grads-dtype bf16 \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
-  --max-tokens-per-gpu 2048 \
+  --max-tokens-per-gpu "${TCO_RL_MAX_TOKENS_PER_GPU}" \
   --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
   --sglang-mem-fraction-static 0.16 \
