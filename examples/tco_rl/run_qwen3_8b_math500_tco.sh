@@ -51,6 +51,7 @@ python train.py \
   --tensor-model-parallel-size 1 \
   --pipeline-model-parallel-size 1 \
   --context-parallel-size 1 \
+  --transformer-impl local \
   --no-rope-fusion \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
