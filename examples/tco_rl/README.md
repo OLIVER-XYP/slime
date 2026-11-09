@@ -1,0 +1,35 @@
+# TCO RL first real campaign
+
+This directory contains the first Qwen3-8B single-step GRPO campaign.
+
+Prepare the HF checkpoint and convert it to a Megatron distributed checkpoint:
+
+```bash
+cd /home/slai/work/slime
+source scripts/models/qwen3-8B.sh
+PYTHONPATH=/home/slai/src/Megatron-LM python tools/convert_hf_to_torch_dist.py \
+  "${MODEL_ARGS[@]}" \
+  --hf-checkpoint /home/slai/models/Qwen3-8B \
+  --save /home/slai/models/Qwen3-8B_torch_dist
+```
+
+Run the control:
+
+```bash
+cd /home/slai/work/slime
+export TCO_RL_FAULT=none
+bash examples/tco_rl/run_qwen3_8b_math500_tco.sh
+```
+
+Run the manually injected reward fault with a separate trace:
+
+```bash
+cd /home/slai/work/slime
+export TCO_RL_FAULT=reward_flip
+export TRACE_PATH=/home/slai/work/TCO-TSR/outputs/rl/qwen3_math500_slime.reward_flip.{role}.jsonl
+bash examples/tco_rl/run_qwen3_8b_math500_tco.sh
+```
+
+The observer records rollout, reward, advantage, policy logprob, loss, backward,
+and optimizer boundaries. The deterministic TCO harness remains the reference
+for checking the expected earliest boundary: `reward.verify` for this fault.
