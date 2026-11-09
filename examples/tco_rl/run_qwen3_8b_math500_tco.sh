@@ -66,6 +66,7 @@ source scripts/models/qwen3-8B.sh
   --no-rope-fusion \
   --no-persist-layer-norm \
   --no-gradient-accumulation-fusion \
+  --no-masked-softmax-fusion \
   --grad-reduce-in-bf16 \
   --no-use-distributed-optimizer \
   --use-torch-fsdp2 \
