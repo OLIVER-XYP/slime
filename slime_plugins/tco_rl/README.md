@@ -18,6 +18,10 @@ observer.record_optimizer(rollout_id, step=step)
 observer.flush()
 ```
 
+Observers created with `from_env` flush after every event by default, so traces
+survive a worker or actor failure. Set `TCO_RL_FLUSH_EACH_EVENT=0` to defer
+writing until an explicit `flush()` call.
+
 The deterministic CPU reference and fault campaign live in the companion
 `TCO-TSR` repository under `src/tco/rl`.  The event names and contract IDs are
 shared so a real Slime trace can be handed to the same analysis pipeline.

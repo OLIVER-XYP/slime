@@ -87,6 +87,7 @@ class SlimeTCOObserver:
 
     path: str | Path | None = None
     experiment_id: str = "slime-rl"
+    flush_each_event: bool = True
     events: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
@@ -99,7 +100,12 @@ class SlimeTCOObserver:
                 "role": os.environ.get("TCO_RL_ROLE", "unknown"),
             }
             path = path.format(**replacements)
-        return cls(path=path, experiment_id=experiment_id)
+        flush_each_event = os.environ.get("TCO_RL_FLUSH_EACH_EVENT", "1").strip().lower()
+        return cls(
+            path=path,
+            experiment_id=experiment_id,
+            flush_each_event=flush_each_event not in {"0", "false", "no", "off"},
+        )
 
     def emit(
         self,
@@ -129,6 +135,8 @@ class SlimeTCOObserver:
             "residual": residual,
         }
         self.events.append(event)
+        if self.flush_each_event:
+            self.flush()
         return event
 
     @staticmethod
