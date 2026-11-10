@@ -42,4 +42,7 @@ the expected earliest boundary: `reward.verify` for this fault.
 
 If the colocated 8B actor needs a lower memory envelope, override
 `TCO_RL_MAX_RESPONSE_LEN` and `TCO_RL_MAX_TOKENS_PER_GPU` for the same command;
-the defaults are 128 and 2048.
+the defaults are 128 and 2048. If the actor still reaches a training-time memory
+peak, use `TCO_RL_N_SAMPLES_PER_PROMPT=2` and
+`TCO_RL_GLOBAL_BATCH_SIZE=2` together so the deterministic reward group remains
+non-degenerate while halving the training batch.

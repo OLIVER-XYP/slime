@@ -10,6 +10,9 @@ set -euo pipefail
 : "${TCO_RL_DETERMINISTIC_REWARD:=1}"
 : "${TCO_RL_MAX_RESPONSE_LEN:=128}"
 : "${TCO_RL_MAX_TOKENS_PER_GPU:=2048}"
+: "${TCO_RL_ROLLOUT_BATCH_SIZE:=1}"
+: "${TCO_RL_N_SAMPLES_PER_PROMPT:=4}"
+: "${TCO_RL_GLOBAL_BATCH_SIZE:=4}"
 : "${PYTHON_BIN:=python3}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
@@ -58,10 +61,10 @@ source scripts/models/qwen3-8B.sh
   --apply-chat-template \
   --custom-rm-path slime_plugins.tco_rl.faults.reward \
   --num-rollout 1 \
-  --rollout-batch-size 1 \
-  --n-samples-per-prompt 4 \
+  --rollout-batch-size "${TCO_RL_ROLLOUT_BATCH_SIZE}" \
+  --n-samples-per-prompt "${TCO_RL_N_SAMPLES_PER_PROMPT}" \
   --num-steps-per-rollout 1 \
-  --global-batch-size 4 \
+  --global-batch-size "${TCO_RL_GLOBAL_BATCH_SIZE}" \
   --rollout-max-response-len "${TCO_RL_MAX_RESPONSE_LEN}" \
   --rollout-temperature 1.0 \
   --advantage-estimator grpo \
