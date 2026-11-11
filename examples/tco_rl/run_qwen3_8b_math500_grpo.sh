@@ -96,9 +96,6 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --use-dynamic-batch-size \
   --max-tokens-per-gpu "${MAX_TOKENS_PER_GPU}" \
   --recompute-activations \
-  --recompute-granularity full \
-  --recompute-method uniform \
-  --recompute-num-layers 1 \
   --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
   --sglang-mem-fraction-static 0.16 \
