@@ -109,7 +109,7 @@ async def _evaluate(
             prompt = _prompt(tokenizer, item["problem"])
             for sample_index in range(n_samples):
                 params = dict(sampling)
-                params["seed"] = seed + prompt_index * n_samples + sample_index
+                params["sampling_seed"] = seed + prompt_index * n_samples + sample_index
                 tasks.append(_generate_one(session, semaphore, base_url, prompt, params))
         results = await asyncio.gather(*tasks)
 
