@@ -15,6 +15,7 @@ set -euo pipefail
 : "${GLOBAL_BATCH_SIZE:=16}"
 : "${MAX_RESPONSE_LEN:=512}"
 : "${MAX_TOKENS_PER_GPU:=4096}"
+: "${SGLANG_MEM_FRACTION_STATIC:=0.20}"
 : "${TRAIN_PARAM_PATTERNS:=output_layer}"
 : "${PYTHON_BIN:=/home/slai/venv/bin/python}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
@@ -98,7 +99,7 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --recompute-activations \
   --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
-  --sglang-mem-fraction-static 0.16 \
+  --sglang-mem-fraction-static "${SGLANG_MEM_FRACTION_STATIC}" \
   --sglang-disable-cuda-graph \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0
