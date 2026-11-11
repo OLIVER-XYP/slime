@@ -10,7 +10,31 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from slime.rollout.rm_hub.deepscaler import get_deepscaler_rule_based_reward
+from slime.rollout.rm_hub.math_utils import extract_answer, grade_answer_mathd, grade_answer_sympy
+
+
+def _math_reward(response: str, label: Any) -> float:
+    """Score both Qwen3 thinking and plain ``Answer:`` responses.
+
+    Qwen3 can be configured with thinking disabled, in which case the response
+    has no ``</think>`` marker.  The upstream DeepScaler hook treats such a
+    response as malformed and returns zero, which would make real GRPO runs
+    degenerate.  TCO's RL campaign keeps the same answer parser and verifier,
+    while allowing either response envelope.
+    """
+    if "</think>" in response:
+        model_solution = response.split("</think>")[-1]
+    elif "###Response" in response:
+        model_solution = response.split("###Response", 1)[1]
+    else:
+        model_solution = response
+    model_answer = extract_answer(model_solution)
+    if model_answer is None or label in (None, ""):
+        return 0.0
+    truth = extract_answer(str(label)) if "\\boxed" in str(label) else str(label)
+    if truth is None:
+        return 0.0
+    return float(grade_answer_mathd(model_answer, truth) or grade_answer_sympy(model_answer, truth))
 
 
 def apply_reward_fault(
@@ -33,7 +57,7 @@ async def reward(args: Any, sample: Any, **_: Any) -> float:
     label = sample.label
     if "</think>" in response:
         response = response.split("</think>")[-1]
-    reward_value = get_deepscaler_rule_based_reward(response, label)
+    reward_value = _math_reward(response, label)
 
     # The first GRPO smoke run is intentionally deterministic.  Qwen3's
     # colocated rollout can be truncated before it emits a parseable answer,

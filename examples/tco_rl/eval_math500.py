@@ -22,7 +22,7 @@ from typing import Any
 import aiohttp
 from transformers import AutoTokenizer
 
-from slime.rollout.rm_hub.deepscaler import get_deepscaler_rule_based_reward
+from slime_plugins.tco_rl.faults import _math_reward
 
 
 INSTRUCTION = (
@@ -120,7 +120,7 @@ async def _evaluate(
         for sample_index in range(n_samples):
             response = results[offset]
             offset += 1
-            reward = float(get_deepscaler_rule_based_reward(response, item["answer"]))
+            reward = _math_reward(response, item["answer"])
             samples.append(
                 {
                     "sample_idx": sample_index,
