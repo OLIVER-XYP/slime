@@ -1,4 +1,61 @@
-# TCO RL first real campaign
+# TCO RL MATH-500 campaign
+
+This directory contains the reproducible Qwen3-8B math experiment used to
+exercise TCO across the full RL chain. The public `HuggingFaceH4/MATH-500`
+test set is used only for evaluation; GRPO training uses the public
+`zhuzilin/dapo-math-17k` data. The evaluator and Slime reward hook share the
+same answer parser and math verifier.
+
+Prepare the complete evaluation data on the experiment host:
+
+```bash
+hf download HuggingFaceH4/MATH-500 --repo-type dataset \
+  --local-dir /home/slai/data/MATH-500 --include '*.json*'
+cd /home/slai/work/slime
+python examples/tco_rl/prepare_math500.py \
+  --input /home/slai/data/MATH-500/test.jsonl \
+  --output /home/slai/data/MATH-500/math500_slime.jsonl
+```
+
+Run a fixed-seed full baseline. The output JSON contains every response and
+the aggregate `pass@1` (or `pass@k` when `--n-samples k` is used):
+
+```bash
+PYTHONPATH=/home/slai/work/slime:/home/slai/src/Megatron-LM \
+python examples/tco_rl/eval_math500.py \
+  --model /home/slai/models/Qwen3-8B \
+  --data /home/slai/data/MATH-500/test.jsonl \
+  --out /home/slai/artifacts/math500_baseline_n1.json \
+  --start-server --n-samples 1 --max-new-tokens 4096 \
+  --temperature 0.6 --top-p 0.95 --max-concurrency 64
+```
+
+Run real multi-step GRPO with online rewards and checkpoint export:
+
+```bash
+cd /home/slai/work/slime
+NUM_ROLLOUT=24 ROLLOUT_BATCH_SIZE=4 N_SAMPLES_PER_PROMPT=4 \
+  bash examples/tco_rl/run_qwen3_8b_math500_grpo.sh
+```
+
+The default single-GB10 recipe trains `output_layer` only so the full rollout,
+reward, advantage, loss, backward, optimizer, weight-sync, and checkpoint path
+can run within the machine's unified-memory limit. `TRAIN_PARAM_PATTERNS` can
+be changed after a memory check. Checkpoints are written under
+`/home/slai/artifacts/qwen3-8b-tco-grpo/` and exported as Hugging Face models
+under `hf/step-*`; each run also writes compact TCO JSONL traces.
+
+Evaluate the final exported checkpoint with exactly the baseline configuration:
+
+```bash
+PYTHONPATH=/home/slai/work/slime:/home/slai/src/Megatron-LM \
+python examples/tco_rl/eval_math500.py \
+  --model /home/slai/artifacts/qwen3-8b-tco-grpo/hf/step-23 \
+  --data /home/slai/data/MATH-500/test.jsonl \
+  --out /home/slai/artifacts/math500_grpo_step23_n1.json \
+  --start-server --n-samples 1 --max-new-tokens 4096 \
+  --temperature 0.6 --top-p 0.95 --max-concurrency 64
+```
 
 This directory contains the first Qwen3-8B single-step GRPO campaign.
 
