@@ -14,8 +14,11 @@ set -euo pipefail
 : "${N_SAMPLES_PER_PROMPT:=4}"
 : "${GLOBAL_BATCH_SIZE:=16}"
 : "${MAX_RESPONSE_LEN:=512}"
+: "${ROLLOUT_MAX_CONTEXT_LEN:=4096}"
 : "${MAX_TOKENS_PER_GPU:=4096}"
 : "${SGLANG_MEM_FRACTION_STATIC:=0.20}"
+: "${ROLLOUT_TEMPERATURE:=0.6}"
+: "${ROLLOUT_TOP_P:=0.95}"
 : "${TRAIN_PARAM_PATTERNS:=output_layer}"
 : "${PYTHON_BIN:=/home/slai/venv/bin/python}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
@@ -66,8 +69,10 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --rollout-shuffle \
   --rollout-seed 20261111 \
   --rollout-max-response-len "${MAX_RESPONSE_LEN}" \
-  --rollout-max-context-len 8192 \
-  --rollout-temperature 1.0 \
+  --rollout-max-context-len "${ROLLOUT_MAX_CONTEXT_LEN}" \
+  --rollout-temperature "${ROLLOUT_TEMPERATURE}" \
+  --rollout-top-p "${ROLLOUT_TOP_P}" \
+  --rollout-skip-special-tokens \
   --advantage-estimator grpo \
   --eps-clip 0.2 \
   --kl-loss-coef 0.0 \
