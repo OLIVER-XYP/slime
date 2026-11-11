@@ -65,6 +65,7 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --rollout-shuffle \
   --rollout-seed 20261111 \
   --rollout-max-response-len "${MAX_RESPONSE_LEN}" \
+  --rollout-max-context-len 8192 \
   --rollout-temperature 1.0 \
   --advantage-estimator grpo \
   --eps-clip 0.2 \
@@ -92,7 +93,12 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --megatron-fsdp-main-grads-dtype bf16 \
   --expert-model-parallel-size 1 \
   --expert-tensor-parallel-size 1 \
+  --use-dynamic-batch-size \
   --max-tokens-per-gpu "${MAX_TOKENS_PER_GPU}" \
+  --recompute-activations \
+  --recompute-granularity full \
+  --recompute-method uniform \
+  --recompute-num-layers 1 \
   --train-memory-margin-bytes 0 \
   --rollout-num-gpus-per-engine 1 \
   --sglang-mem-fraction-static 0.16 \
