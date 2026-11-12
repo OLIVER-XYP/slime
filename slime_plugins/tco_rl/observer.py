@@ -99,7 +99,11 @@ class SlimeTCOObserver:
                 "pid": os.getpid(),
                 "role": os.environ.get("TCO_RL_ROLE", "unknown"),
             }
-            path = path.format(**replacements)
+            # Replace the supported placeholders individually.  A malformed
+            # externally supplied path (for example an unmatched ``{``) must
+            # not abort rollout generation while constructing the observer.
+            for key, value in replacements.items():
+                path = path.replace("{" + key + "}", str(value))
         flush_each_event = os.environ.get("TCO_RL_FLUSH_EACH_EVENT", "1").strip().lower()
         return cls(
             path=path,

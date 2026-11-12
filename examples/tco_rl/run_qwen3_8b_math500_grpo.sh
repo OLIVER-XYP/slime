@@ -20,6 +20,7 @@ set -euo pipefail
 : "${ROLLOUT_TEMPERATURE:=0.6}"
 : "${ROLLOUT_TOP_P:=0.95}"
 : "${TRAIN_PARAM_PATTERNS:=output_layer}"
+: "${SAVE_INTERVAL:=8}"
 : "${PYTHON_BIN:=/home/slai/venv/bin/python}"
 : "${CUDA_LIB_DIRS:=/home/slai/venv/lib/python3.12/site-packages/torch/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cu13/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:/home/slai/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/targets/sbsa-linux/lib}"
 
@@ -30,7 +31,7 @@ export LD_LIBRARY_PATH="${CUDA_LIB_DIRS}:${LD_LIBRARY_PATH:-}"
 export RAY_memory_usage_threshold="${RAY_memory_usage_threshold:-0.999}"
 export RAY_memory_monitor_refresh_ms="${RAY_memory_monitor_refresh_ms:-0}"
 export TCO_RL_TRACE_PATH="${TRACE_PATH}"
-export TCO_RL_FAULT="none"
+export TCO_RL_FAULT="${TCO_RL_FAULT:-none}"
 export TCO_RL_DETERMINISTIC_REWARD="0"
 export TCO_RL_FLUSH_EACH_EVENT="1"
 
@@ -47,7 +48,11 @@ mkdir -p "${SAVE_DIR}/checkpoints" "${SAVE_DIR}/hf"
 source scripts/models/qwen3-8B.sh
 
 PARAM_ARGS=()
-read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
+TRAIN_PARAM_ARGS=()
+if [[ -n "${TRAIN_PARAM_PATTERNS}" && "${TRAIN_PARAM_PATTERNS,,}" != "all" && "${TRAIN_PARAM_PATTERNS}" != "__all__" ]]; then
+  read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
+  TRAIN_PARAM_ARGS=(--only-train-params-name-list "${PARAM_ARGS[@]}")
+fi
 
 "${PYTHON_BIN}" train.py \
   "${MODEL_ARGS[@]}" \
@@ -81,9 +86,9 @@ read -r -a PARAM_ARGS <<< "${TRAIN_PARAM_PATTERNS}"
   --no-save-optim \
   --lr 1e-6 \
   --save "${SAVE_DIR}/checkpoints" \
-  --save-interval 8 \
+  --save-interval "${SAVE_INTERVAL}" \
   --save-hf "${SAVE_DIR}/hf/step-{rollout_id}" \
-  --only-train-params-name-list "${PARAM_ARGS[@]}" \
+  "${TRAIN_PARAM_ARGS[@]}" \
   --tensor-model-parallel-size 1 \
   --pipeline-model-parallel-size 1 \
   --context-parallel-size 1 \
